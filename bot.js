@@ -1,116 +1,35 @@
 const TeleBot = require("telebot");
-const axios = require("axios");
-const token = require("./token");
-const buttons = require("./buttons");
+require("dotenv").config();
 const bot = new TeleBot({
-  token: token,
+  token: process.env.TOKEN,
   usePlugins: ["commandButton"],
 });
+module.exports = bot;
 
-// menu principal
-const mainMenu = bot.inlineKeyboard([
-  [
-    bot.inlineButton(buttons.showProducts.label, {
-      callback: buttons.showProducts.command,
-    }),
-  ],
-  [
-    bot.inlineButton(buttons.delivery.label, {
-      callback: buttons.delivery.command,
-    }),
-  ],
-  [
-    bot.inlineButton(buttons.payment.label, {
-      callback: buttons.payment.command,
-    }),
-  ],
-]);
-
-// submenu de productos
-const productsMenu = bot.inlineKeyboard([
-  [
-    bot.inlineButton(buttons.searchProduct.label, {
-      callback: buttons.searchProduct.command,
-    }),
-    bot.inlineButton(buttons.addToCart.label, {
-      callback: buttons.addToCart.command,
-    }),
-  ],
-  [
-    bot.inlineButton(buttons.backToMain.label, {
-      callback: buttons.backToMain.command,
-    }),
-  ],
-]);
-
-const productResultMenu = bot.inlineKeyboard([
-  [
-    bot.inlineButton(buttons.backToProducts.label, {
-      callback: buttons.backToProducts.command,
-    }),
-  ],
-]);
+const {
+  searchProduct,
+  getProducts,
+  postUser,
+  addToCart,
+  getCart,
+  showMainMenu,
+  textDelivery,
+  buttonsPayment,
+  infoCash,
+  infoCrypto,
+  infoTransfer,
+  printBill,
+} = require("./messages");
 
 // variable auxiliar para esperar input de usuario
-let waitUserInput = false;
+let waitUserInputSearch = false;
+let waitUserInputCart = false;
 
-// funcion para buscar producto
-async function searchProduct(msg) {
-  if (waitUserInput) {
-    let id = msg.from.id;
-    const replyMarkup = productResultMenu;
-    bot.sendMessage(id, "buscando...");
-    try {
-      const response = await axios.get(
-        `https://fakestoreapi.com/products/${msg.text}`
-      );
-      const text = `${response.data.title}\n\n${response.data.description}\n\n${response.data.price} $${response.data.image}`;
-      bot.sendMessage(id, text, { replyMarkup });
-      waitUserInput = false;
-    } catch (error) {
-      bot.sendMessage(id, "no se encontro el producto");
-      waitUserInput = false;
-    }
-  }
-}
-
-// funcion para obterner los 20 productos
-async function getProducts(msg) {
-  let id = msg.from.id;
-  const replyMarkup = productsMenu;
-  try {
-    const response = await axios.get(
-      "https://fakestoreapi.com/products?limit=20"
-    );
-    const text = response.data
-      .map((item) => {
-        return `${item.id} - ${item.title} ${item.price}`;
-      })
-      .join("\n");
-    bot.sendMessage(id, text, { replyMarkup });
-  } catch (error) {
-    console.log(error);
-  }
-}
 // mensaje de bienvenida
-bot.on("/start", (msg) => {
-  const replyMarkup = mainMenu;
-  bot.sendMessage(
-    msg.from.id,
-    "Bienvenido a nuestra tienda!\nSeleccione una de las siguientes opciones:",
-    {
-      replyMarkup,
-    }
-  );
-});
+bot.on("/start", postUser);
 
 // mostrar el menu principal
-bot.on(["/mainMenu"], (msg) => {
-  const replyMarkup = mainMenu;
-  bot.sendMessage(msg.from.id, "Seleccione una de las siguientes opciones:", {
-    replyMarkup,
-  });
-});
+bot.on(["/mainMenu"], showMainMenu);
 
 // mostrar los 20 productos
 bot.on("/showProducts", getProducts);
@@ -118,16 +37,58 @@ bot.on("/showProducts", getProducts);
 // esperar input de usuario para buscar el producto
 bot.on("/searchProduct", (msg) => {
   let id = msg.from.id;
-  bot.sendMessage(id, "introduzca el numero del producto que desea buscar");
-  waitUserInput = true;
+  bot.sendMessage(
+    id,
+    "introduzca el numero del producto que desea buscar. Ej: 1"
+  );
+  waitUserInputSearch = true;
 });
 
-// buscar producto por id, explicacion y prueba del regex: https://regex101.com/r/MDTN6R/1
-bot.on(/^1?\d$|^20$/, searchProduct);
+// buscar producto por id
+bot.on("text", (msg) => {
+  if (waitUserInputSearch) {
+    searchProduct(msg);
+    waitUserInputSearch = false;
+  }
+});
 
+// esperar input de usuario para añadir el producto al carrito
+bot.on("/addToCart", (msg) => {
+  let id = msg.from.id;
+  bot.sendMessage(
+    id,
+    "introduzca los numeros de los items que desea agregar al carrito, separados por comas. Ej: 1,2,3"
+  );
+  waitUserInputCart = true;
+});
+
+// añade los productos al carrito por su id
+bot.on("text", (msg) => {
+  if (waitUserInputCart) {
+    addToCart(msg);
+    waitUserInputCart = false;
+  }
+});
+
+// mostrar el carrito del usuario
+bot.on("/goToCart", getCart);
+
+// calback que recibe los comandos de los botones
 bot.on("callbackQuery", (msg) => {
-  console.log("callbackQuery data:", msg.data);
   bot.answerCallbackQuery(msg.id);
 });
+//INFO DELIVERY
+bot.on("/delivery", textDelivery);
+//MENU PAYMENT -Info
+bot.on("/payment", buttonsPayment);
+//import cash
+bot.on("/cash", infoCash);
+//import crypto
+bot.on("/crypto", infoCrypto);
+//import transfer
+bot.on("/transfer", infoTransfer);
+
+// imprimir factura
+bot.on("/printBill", printBill);
 
 bot.connect();
