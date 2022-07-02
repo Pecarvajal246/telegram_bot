@@ -93,7 +93,6 @@ async function addToCart(msg) {
       "Productos agregados exitosamente al carrito",
       { replyMarkup }
     );
-    waitUserInputCart = false;
   } catch (error) {
     bot.sendMessage(
       msg.from.id,
@@ -166,9 +165,6 @@ function infoTransfer(msg) {
 }
 
 async function printBill(msg){
-    //
-    // PEDIR DATOS, VALIDARLOS Y ENVIAR CORREO AQUI
-    //
   try {
     await apiDeleteCart(msg)
   } catch (error) {

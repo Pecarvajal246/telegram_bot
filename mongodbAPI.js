@@ -12,6 +12,7 @@ const POST_USER = "dbPostUsers";
 const POST_CART = "dbPostCart";
 const GET_CART = "dbGetCart";
 const DELETE_CART = "dbDeleteCart";
+const POST_EMAIL = "dbPostEmail";
 
 // funcion para buscar producto
 async function apiSearchProduct(msg) {
@@ -89,6 +90,16 @@ async function apiDeleteCart(msg) {
   const userId = msg.from.id;
   try {
     await mongodbAPI.delete(DELETE_CART, {data: { userId }});
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+async function apiPostEmail(msg) {
+  const userId = msg.from.id;
+  const text = msg
+  try {
+    await mongodbAPI.post(POST_EMAIL, { firstName, lastName, email, userId});
   } catch (error) {
     console.log(error)
   }
