@@ -12,7 +12,6 @@ const POST_USER = "dbPostUsers";
 const POST_CART = "dbPostCart";
 const GET_CART = "dbGetCart";
 const DELETE_CART = "dbDeleteCart";
-const POST_EMAIL = "dbPostEmail";
 
 // funcion para buscar producto
 async function apiSearchProduct(msg) {
@@ -75,11 +74,13 @@ async function apiGetCart(msg) {
   const userId = msg.from.id;
   try {
     let response = await mongodbAPI.get(`${GET_CART}?userId=${userId}`);
-    const text = response.data
-      .map((item) => {
-        return `${item.id} - ${item.title} ${item.price}`;
-      })
-      .join("\n");
+    let items =''
+    let total=0
+    for (const item of response.data) {
+      items += `${item.id} - ${item.title} ${item.price} $\n`;
+      total += parseFloat(item.price)
+    }
+    const text = `${items}\n total = ${total} $`;
     return text;
   } catch (error) {
     console.log(error);
@@ -89,19 +90,9 @@ async function apiGetCart(msg) {
 async function apiDeleteCart(msg) {
   const userId = msg.from.id;
   try {
-    await mongodbAPI.delete(DELETE_CART, {data: { userId }});
+    await mongodbAPI.delete(DELETE_CART, { data: { userId } });
   } catch (error) {
-    console.log(error)
-  }
-}
-
-async function apiPostEmail(msg) {
-  const userId = msg.from.id;
-  const text = msg
-  try {
-    await mongodbAPI.post(POST_EMAIL, { firstName, lastName, email, userId});
-  } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 

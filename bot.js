@@ -91,7 +91,7 @@ bot.on("/transfer", infoTransfer);
 
 // imprimir factura
 bot.on("/printBill", (msg) => {
-  let id = msg.from.id;
+  const id = msg.from.id;
   bot.sendMessage(
     id,
     "Por favor introduzca su nombre, apellido y correo electronico separados por comas. Ej: Nombre,Apellido,email@email.com"
