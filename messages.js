@@ -1,4 +1,7 @@
 const bot = require("./bot");
+
+const sendEmail = require("./email");
+
 const {
   apiSearchProduct,
   apiGetProducts,
@@ -93,7 +96,6 @@ async function addToCart(msg) {
       "Productos agregados exitosamente al carrito",
       { replyMarkup }
     );
-    waitUserInputCart = false;
   } catch (error) {
     bot.sendMessage(
       msg.from.id,
@@ -165,15 +167,26 @@ function infoTransfer(msg) {
   return bot.sendMessage(id, text);
 }
 
-async function printBill(msg){
-    //
-    // PEDIR DATOS, VALIDARLOS Y ENVIAR CORREO AQUI
-    //
+async function printBill(msg) {
+  const id = msg.from.id;
+  const input = msg.text.split(",");
+  const firstName = input[0];
+  const lastName = input[1];
+  const email = input[2];
+
+  // TODO: validación del input
+
   try {
-    await apiDeleteCart(msg)
+    const items = await apiGetCart(msg);
+    sendEmail(email, items);
+    await apiDeleteCart(msg);
   } catch (error) {
-   console.log(error)
+    console.log(error);
   }
+  return bot.sendMessage(
+    id,
+    "Muchas gracias por comprar en FakeStoreApi, la factura ha sido enviada a su correo electrónico"
+  );
 }
 
 module.exports = {
