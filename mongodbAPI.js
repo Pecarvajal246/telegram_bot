@@ -74,11 +74,13 @@ async function apiGetCart(msg) {
   const userId = msg.from.id;
   try {
     let response = await mongodbAPI.get(`${GET_CART}?userId=${userId}`);
-    const text = response.data
-      .map((item) => {
-        return `${item.id} - ${item.title} ${item.price}`;
-      })
-      .join("\n");
+    let items =''
+    let total=0
+    for (const item of response.data) {
+      items += `${item.id} - ${item.title} ${item.price} $\n`;
+      total += parseFloat(item.price)
+    }
+    const text = `${items}\n total = ${total} $`;
     return text;
   } catch (error) {
     console.log(error);
@@ -88,9 +90,9 @@ async function apiGetCart(msg) {
 async function apiDeleteCart(msg) {
   const userId = msg.from.id;
   try {
-    await mongodbAPI.delete(DELETE_CART, {data: { userId }});
+    await mongodbAPI.delete(DELETE_CART, { data: { userId } });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 

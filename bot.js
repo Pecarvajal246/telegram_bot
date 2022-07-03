@@ -24,6 +24,7 @@ const {
 // variable auxiliar para esperar input de usuario
 let waitUserInputSearch = false;
 let waitUserInputCart = false;
+let waitUserInputBill = false;
 
 // mensaje de bienvenida
 bot.on("/start", postUser);
@@ -89,6 +90,19 @@ bot.on("/crypto", infoCrypto);
 bot.on("/transfer", infoTransfer);
 
 // imprimir factura
-bot.on("/printBill", printBill);
+bot.on("/printBill", (msg) => {
+  const id = msg.from.id;
+  bot.sendMessage(
+    id,
+    "Por favor introduzca su nombre, apellido y correo electronico separados por comas. Ej: Nombre,Apellido,email@email.com"
+  );
+  waitUserInputBill = true;
+});
 
+bot.on("text", (msg) => {
+  if (waitUserInputBill) {
+    printBill(msg);
+    waitUserInputBill = false;
+  }
+});
 bot.connect();
