@@ -1,4 +1,5 @@
 const axios = require("axios");
+const yup = require("yup")
 
 const mongodbAPI = axios.create({
   // baseURL: "http://localhost:8888/",
@@ -96,6 +97,32 @@ async function apiDeleteCart(msg) {
   }
 }
 
+async function validationEmail(text) {
+  let schema = yup.object().shape({
+    firstName: yup.string().required().min(3).max(20),
+    lastName: yup.string().required().min(3).max(20),
+    email: yup.string().required().email().max(255)
+})
+
+  let datos = text.split(",") 
+
+  datos=datos.map((items) => items.trim())
+
+  let valid = await schema.isValid({
+  
+    firstName: datos[0],
+    lastName: datos[1],
+    email: datos[2]
+  })
+
+  if(valid) {
+    return datos
+} else{
+    return false
+  }
+
+}
+
 module.exports = {
   apiSearchProduct,
   apiGetProducts,
@@ -103,4 +130,5 @@ module.exports = {
   apiPostCart,
   apiGetCart,
   apiDeleteCart,
+  validationEmail
 };

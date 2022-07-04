@@ -9,6 +9,7 @@ const {
   apiPostCart,
   apiGetCart,
   apiDeleteCart,
+  validationEmail
 } = require("./mongodbAPI");
 
 const {
@@ -168,13 +169,19 @@ function infoTransfer(msg) {
 }
 
 async function printBill(msg) {
-  const id = msg.from.id;
-  const input = msg.text.split(",");
-  const firstName = input[0];
-  const lastName = input[1];
-  const email = input[2];
 
-  // TODO: validación del input
+  let replyMarkup = billMenu
+  let id = msg.from.id
+  let text = msg.text 
+  const firstName = text[0]
+  const lastName = text[1]
+  const email = text[2]
+
+  validation = await validationEmail(text)
+ 
+  if(!validation){
+    return bot.sendMessage(id, "El correo no es Gmail o los datos son invalidos", { replyMarkup })
+  }else {
 
   try {
     const items = await apiGetCart(msg);
@@ -187,6 +194,7 @@ async function printBill(msg) {
     id,
     "Muchas gracias por comprar en FakeStoreApi, la factura ha sido enviada a su correo electrónico"
   );
+  }
 }
 
 module.exports = {
