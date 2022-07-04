@@ -1,6 +1,6 @@
 const bot = require("./bot");
 
-const sendEmail = require("./email");
+const { sendEmail, validationEmail } = require("./email");
 
 const {
   apiSearchProduct,
@@ -9,7 +9,6 @@ const {
   apiPostCart,
   apiGetCart,
   apiDeleteCart,
-  validationEmail
 } = require("./mongodbAPI");
 
 const {
@@ -169,31 +168,33 @@ function infoTransfer(msg) {
 }
 
 async function printBill(msg) {
+  let replyMarkup = billMenu;
+  let id = msg.from.id;
+  let text = msg.text.split(",");
+  const firstName = text[0];
+  const lastName = text[1];
+  const email = text[2];
 
-  let replyMarkup = billMenu
-  let id = msg.from.id
-  let text = msg.text 
-  const firstName = text[0]
-  const lastName = text[1]
-  const email = text[2]
+  validation = await validationEmail(firstName, lastName, email);
 
-  validation = await validationEmail(text)
- 
-  if(!validation){
-    return bot.sendMessage(id, "El correo no es Gmail o los datos son invalidos", { replyMarkup })
-  }else {
-
-  try {
-    const items = await apiGetCart(msg);
-    sendEmail(email, items);
-    await apiDeleteCart(msg);
-  } catch (error) {
-    console.log(error);
-  }
-  return bot.sendMessage(
-    id,
-    "Muchas gracias por comprar en FakeStoreApi, la factura ha sido enviada a su correo electrónico"
-  );
+  if (!validation) {
+    return bot.sendMessage(
+      id,
+      "El correo no es Gmail o los datos son invalidos",
+      { replyMarkup }
+    );
+  } else {
+    try {
+      const items = await apiGetCart(msg);
+      sendEmail(email, items);
+      await apiDeleteCart(msg);
+    } catch (error) {
+      console.log(error);
+    }
+    return bot.sendMessage(
+      id,
+      "Muchas gracias por comprar en FakeStoreApi, la factura ha sido enviada a su correo electrónico"
+    );
   }
 }
 
