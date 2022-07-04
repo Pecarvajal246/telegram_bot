@@ -30,9 +30,9 @@ async function searchProduct(msg) {
   if (!regex.test(userInput)) {
     replyMarkup = productsMenu;
     bot.sendMessage(
-      userId,
-      "⚠️Error, debe introducir solamente el numero del producto que desea buscar. Ej: 1.\nSeleccione una opción",
-      { replyMarkup }
+      id,
+      "⚠️Error, debe introducir solamente el numero del producto que desea buscar. Ej: 1 Intentelo de nuevo.",
+      { ask: 'searchProduct' }
     );
     return;
   }
@@ -84,7 +84,7 @@ async function addToCart(msg) {
     bot.sendMessage(
       msg.from.id,
       "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.\nSeleccione una opción",
-      { replyMarkup }
+      {  ask: "addToCart" }
     );
     return;
   }
@@ -181,7 +181,7 @@ async function printBill(msg) {
     return bot.sendMessage(
       id,
       "El correo no es Gmail o los datos son invalidos",
-      { replyMarkup }
+      {  ask: "printBill" }
     );
   } else {
     try {

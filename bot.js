@@ -2,7 +2,7 @@ const TeleBot = require("telebot");
 require("dotenv").config();
 const bot = new TeleBot({
   token: process.env.TOKEN,
-  usePlugins: ["commandButton"],
+  usePlugins: ["commandButton", "askUser"],
 });
 module.exports = bot;
 
@@ -40,36 +40,26 @@ bot.on("/searchProduct", (msg) => {
   let id = msg.from.id;
   bot.sendMessage(
     id,
-    "introduzca el numero del producto que desea buscar. Ej: 1"
+    "introduzca el numero del producto que desea buscar. Ej: 1",
+    { ask: "searchProduct" }
   );
-  waitUserInputSearch = true;
 });
 
 // buscar producto por id
-bot.on("text", (msg) => {
-  if (waitUserInputSearch) {
-    searchProduct(msg);
-    waitUserInputSearch = false;
-  }
-});
+bot.on("ask.searchProduct", searchProduct);
 
 // esperar input de usuario para añadir el producto al carrito
 bot.on("/addToCart", (msg) => {
   let id = msg.from.id;
   bot.sendMessage(
     id,
-    "introduzca los numeros de los items que desea agregar al carrito, separados por comas. Ej: 1,2,3"
+    "introduzca los numeros de los items que desea agregar al carrito, separados por comas. Ej: 1,2,3",
+    { ask: "addToCart" }
   );
-  waitUserInputCart = true;
 });
 
 // añade los productos al carrito por su id
-bot.on("text", (msg) => {
-  if (waitUserInputCart) {
-    addToCart(msg);
-    waitUserInputCart = false;
-  }
-});
+bot.on("ask.addToCart", addToCart);
 
 // mostrar el carrito del usuario
 bot.on("/goToCart", getCart);
@@ -94,15 +84,11 @@ bot.on("/printBill", (msg) => {
   const id = msg.from.id;
   bot.sendMessage(
     id,
-    "Por favor introduzca su nombre, apellido y correo electronico separados por comas. Ej: Nombre,Apellido,email@email.com"
+    "Por favor introduzca su nombre, apellido y correo electronico separados por comas. Ej: Nombre,Apellido,email@email.com",
+    { ask: "printBill" }
   );
-  waitUserInputBill = true;
 });
 
-bot.on("text", (msg) => {
-  if (waitUserInputBill) {
-    printBill(msg);
-    waitUserInputBill = false;
-  }
-});
+bot.on("ask.printBill", printBill)
+
 bot.connect();
