@@ -3,6 +3,7 @@ const yup = require("yup");
 require("dotenv").config();
 
 function sendEmail(email, bill) {
+  const text = `Muchas gracias por comprar en FakeStoreApi, a continuación se muestran los detalles de tu compra:\n${bill}`
   let transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -14,10 +15,10 @@ function sendEmail(email, bill) {
   });
   transporter.sendMail(
     {
-      from: "FakeApiStore <fakestoreecommerce@gmail.com>",
+      from: "FakeStoreApi <fakestoreecommerce@gmail.com>",
       to: email,
-      subject: "Factura de compra en FakeApiStore",
-      text: bill,
+      subject: "Factura de compra en FakeStoreApi",
+      text: text,
     },
     function (error) {
       if (error) {

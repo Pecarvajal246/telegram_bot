@@ -173,7 +173,6 @@ function infoTransfer(msg) {
 }
 
 async function printBill(msg) {
-  let replyMarkup = billMenu;
   let id = msg.from.id;
   let text = msg.text.split(",");
   const firstName = text[0];
@@ -185,7 +184,7 @@ async function printBill(msg) {
   if (!validation) {
     return bot.sendMessage(
       id,
-      "El correo no es Gmail o los datos son invalidos",
+      "⚠️Error los datos no son invalidos. Por favor introduzca su nombre, apellido y correo electronico separados por comas. Ej: Nombre,Apellido,email@email.com",
       { ask: "printBill" }
     );
   } else {

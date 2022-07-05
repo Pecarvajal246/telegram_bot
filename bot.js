@@ -74,7 +74,7 @@ bot.on("/crypto", infoCrypto);
 //import transfer
 bot.on("/transfer", infoTransfer);
 
-// imprimir factura
+// le pide los datos al usuario para imprimir factura
 bot.on("/printBill", (msg) => {
   const id = msg.from.id;
   bot.sendMessage(
@@ -84,6 +84,7 @@ bot.on("/printBill", (msg) => {
   );
 });
 
-bot.on("ask.printBill", printBill)
+// imprime la factura con los datos del usuario
+bot.on("ask.printBill", printBill);
 
 bot.connect();
