@@ -1,4 +1,4 @@
-const bot = require("./bot")
+const bot = require("./bot");
 const buttons = {
   showProducts: {
     label: "🛍️ Productos",
@@ -44,10 +44,14 @@ const buttons = {
     label: "🛒 Ir al carrito",
     command: "/goToCart",
   },
+  removeFromCart: {
+    label: "🛒 Remover del carrito",
+    command: "/removeFromCart",
+  },
   printBill: {
     label: "🧾 Imprimir factura",
     command: "/printBill",
-  }
+  },
 };
 
 // menu principal
@@ -82,6 +86,9 @@ const productsMenu = bot.inlineKeyboard([
   [
     bot.inlineButton(buttons.backToMain.label, {
       callback: buttons.backToMain.command,
+    }),
+    bot.inlineButton(buttons.goToCart.label, {
+      callback: buttons.goToCart.command,
     }),
   ],
 ]);
@@ -134,10 +141,33 @@ const billMenu = bot.inlineKeyboard([
     bot.inlineButton(buttons.backToProducts.label, {
       callback: buttons.backToProducts.command,
     }),
+    bot.inlineButton(buttons.removeFromCart.label, {
+      callback: buttons.removeFromCart.command,
+    }),
+  ],
+  [
     bot.inlineButton(buttons.printBill.label, {
       callback: buttons.printBill.command,
+    }),
+  ]
+]);
+
+const emptyCartMenu = bot.inlineKeyboard([
+  [
+    bot.inlineButton(buttons.backToProducts.label, {
+      callback: buttons.backToProducts.command,
     }),
   ],
 ]);
 
-module.exports ={ mainMenu, productsMenu, productResultMenu, cartMenu, payMenu, billMenu };
+
+
+module.exports = {
+  mainMenu,
+  productsMenu,
+  productResultMenu,
+  cartMenu,
+  payMenu,
+  billMenu,
+  emptyCartMenu,
+};

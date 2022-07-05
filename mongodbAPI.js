@@ -4,7 +4,6 @@ const mongodbAPI = axios.create({
   // baseURL: "http://localhost:8888/",
   baseURL: "https://mongo-api-telebot-5a78b8.netlify.app/",
   timeout: 10000,
-  // headers: { "X-Custom-Header": "foobar" },
 });
 
 const GET_ITEMS = "dbGetItems";
@@ -72,26 +71,55 @@ async function apiPostCart(msg) {
 // obiene los items del carrito del usuario
 async function apiGetCart(msg) {
   const userId = msg.from.id;
+  let text;
   try {
     let response = await mongodbAPI.get(`${GET_CART}?userId=${userId}`);
-    const text = response.data
-      .map((item) => {
-        return `${item.id} - ${item.title} ${item.price}`;
-      })
-      .join("\n");
+    const cartItems = response.data.items;
+    if (!response.data.items) {
+      return;
+    }
+    let quantities = {};
+    for (const item of cartItems) {
+      if (quantities.hasOwnProperty(item)) {
+        quantities[item] += 1;
+      } else {
+        quantities[item] = 1;
+      }
+    }
+    let items = "";
+    let total = 0;
+    for (const item of response.data.items_info) {
+      items += `Item: ${item.title}\nid: ${item.id}\nPrecio: ${
+        item.price
+      }$\nCantidad: ${quantities[item.id]}\n\n`;
+      total += parseFloat(item.price) * quantities[item.id];
+    }
+    text = `${items}total = ${total.toFixed(2)} $`;
     return text;
   } catch (error) {
     console.log(error);
   }
 }
 
+// elimina el carrito del usuario
 async function apiDeleteCart(msg) {
   const userId = msg.from.id;
   try {
-    await mongodbAPI.delete(DELETE_CART, {data: { userId }});
+    await mongodbAPI.delete(DELETE_CART, { data: { userId } });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
+}
+
+// elimina los items del carrito del usuario
+async function apiRemoveFromCart(msg) {
+  const userId = msg.from.id;
+  const items = msg.text.split(",").map((item) => {
+    return parseInt(item);
+  });
+  try {
+    await mongodbAPI.delete(DELETE_CART, { data: { userId, items } });
+  } catch (error) {}
 }
 
 module.exports = {
@@ -101,4 +129,5 @@ module.exports = {
   apiPostCart,
   apiGetCart,
   apiDeleteCart,
+  apiRemoveFromCart,
 };

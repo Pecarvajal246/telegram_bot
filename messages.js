@@ -1,4 +1,7 @@
 const bot = require("./bot");
+
+const { sendEmail, validationEmail } = require("./email");
+
 const {
   apiSearchProduct,
   apiGetProducts,
@@ -6,6 +9,7 @@ const {
   apiPostCart,
   apiGetCart,
   apiDeleteCart,
+  apiRemoveFromCart,
 } = require("./mongodbAPI");
 
 const {
@@ -15,6 +19,7 @@ const {
   cartMenu,
   payMenu,
   billMenu,
+  emptyCartMenu,
 } = require("./buttons");
 
 // Request a la api para obtener 1 producto por su id
@@ -27,9 +32,9 @@ async function searchProduct(msg) {
   if (!regex.test(userInput)) {
     replyMarkup = productsMenu;
     bot.sendMessage(
-      userId,
-      "⚠️Error, debe introducir solamente el numero del producto que desea buscar. Ej: 1.\nSeleccione una opción",
-      { replyMarkup }
+      id,
+      "⚠️Error, debe introducir solamente el numero del producto que desea buscar. Ej: 1 Intentelo de nuevo.",
+      { ask: "searchProduct" }
     );
     return;
   }
@@ -77,11 +82,10 @@ async function addToCart(msg) {
   const userInput = msg.text;
   let replyMarkup = cartMenu;
   if (!regex.test(userInput)) {
-    replyMarkup = productsMenu;
     bot.sendMessage(
       msg.from.id,
-      "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.\nSeleccione una opción",
-      { replyMarkup }
+      "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.",
+      { ask: "addToCart" }
     );
     return;
   }
@@ -93,7 +97,6 @@ async function addToCart(msg) {
       "Productos agregados exitosamente al carrito",
       { replyMarkup }
     );
-    waitUserInputCart = false;
   } catch (error) {
     bot.sendMessage(
       msg.from.id,
@@ -107,8 +110,16 @@ async function addToCart(msg) {
 // imprime los items en el carrito del usuario
 async function getCart(msg) {
   try {
-    const replyMarkup = billMenu;
+    let replyMarkup = billMenu;
     const text = await apiGetCart(msg);
+    if (!text) {
+      replyMarkup = emptyCartMenu;
+      return bot.sendMessage(
+        msg.from.id,
+        "Tu carrito esta vacío, agrega productos para poder verlos aqui",
+        { replyMarkup }
+      );
+    }
     bot.sendMessage(msg.from.id, text, { replyMarkup });
   } catch (error) {
     console.log(error);
@@ -165,14 +176,58 @@ function infoTransfer(msg) {
   return bot.sendMessage(id, text);
 }
 
-async function printBill(msg){
-    //
-    // PEDIR DATOS, VALIDARLOS Y ENVIAR CORREO AQUI
-    //
+// envia la factura al correo introducido por el ususario
+async function printBill(msg) {
+  let id = msg.from.id;
+  let text = msg.text.split(",");
+  const firstName = text[0];
+  const lastName = text[1];
+  const email = text[2];
+
+  validation = await validationEmail(firstName, lastName, email);
+
+  if (!validation) {
+    return bot.sendMessage(
+      id,
+      "⚠️Error los datos no son invalidos. Por favor introduzca su nombre, apellido y correo electronico separados por comas. Ej: Nombre,Apellido,email@email.com",
+      { ask: "printBill" }
+    );
+  } else {
+    try {
+      const items = await apiGetCart(msg);
+      sendEmail(email, items);
+      await apiDeleteCart(msg);
+    } catch (error) {
+      console.log(error);
+    }
+    return bot.sendMessage(
+      id,
+      "Muchas gracias por comprar en FakeStoreApi, la factura ha sido enviada a su correo electrónico"
+    );
+  }
+}
+
+// elimina los items intruducidos por el usuario del su carrito
+async function removeFromCart(msg) {
+  const id = msg.from.id;
+  const replyMarkup = cartMenu;
+  const regex = /^(1?\d|^20$)+(,(1?\d|20$))*$/;
+  const userInput = msg.text;
+  if (!regex.test(userInput)) {
+    bot.sendMessage(
+      id,
+      "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.",
+      { ask: "removeFromCart" }
+    );
+    return;
+  }
   try {
-    await apiDeleteCart(msg)
+    await apiRemoveFromCart(msg);
+    bot.sendMessage(id, "Productos eliminados de su carrito exitosamente", {
+      replyMarkup,
+    });
   } catch (error) {
-   console.log(error)
+    console.log(error);
   }
 }
 
@@ -189,4 +244,5 @@ module.exports = {
   infoCrypto,
   infoTransfer,
   printBill,
+  removeFromCart,
 };

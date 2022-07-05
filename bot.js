@@ -2,7 +2,7 @@ const TeleBot = require("telebot");
 require("dotenv").config();
 const bot = new TeleBot({
   token: process.env.TOKEN,
-  usePlugins: ["commandButton"],
+  usePlugins: ["commandButton", "askUser"],
 });
 module.exports = bot;
 
@@ -19,11 +19,8 @@ const {
   infoCrypto,
   infoTransfer,
   printBill,
+  removeFromCart,
 } = require("./messages");
-
-// variable auxiliar para esperar input de usuario
-let waitUserInputSearch = false;
-let waitUserInputCart = false;
 
 // mensaje de bienvenida
 bot.on("/start", postUser);
@@ -39,36 +36,26 @@ bot.on("/searchProduct", (msg) => {
   let id = msg.from.id;
   bot.sendMessage(
     id,
-    "introduzca el numero del producto que desea buscar. Ej: 1"
+    "introduzca el numero del producto que desea buscar. Ej: 1",
+    { ask: "searchProduct" }
   );
-  waitUserInputSearch = true;
 });
 
 // buscar producto por id
-bot.on("text", (msg) => {
-  if (waitUserInputSearch) {
-    searchProduct(msg);
-    waitUserInputSearch = false;
-  }
-});
+bot.on("ask.searchProduct", searchProduct);
 
 // esperar input de usuario para añadir el producto al carrito
 bot.on("/addToCart", (msg) => {
   let id = msg.from.id;
   bot.sendMessage(
     id,
-    "introduzca los numeros de los items que desea agregar al carrito, separados por comas. Ej: 1,2,3"
+    "introduzca los numeros de los items que desea agregar al carrito, separados por comas. Ej: 1,2,3",
+    { ask: "addToCart" }
   );
-  waitUserInputCart = true;
 });
 
 // añade los productos al carrito por su id
-bot.on("text", (msg) => {
-  if (waitUserInputCart) {
-    addToCart(msg);
-    waitUserInputCart = false;
-  }
-});
+bot.on("ask.addToCart", addToCart);
 
 // mostrar el carrito del usuario
 bot.on("/goToCart", getCart);
@@ -88,7 +75,30 @@ bot.on("/crypto", infoCrypto);
 //import transfer
 bot.on("/transfer", infoTransfer);
 
-// imprimir factura
-bot.on("/printBill", printBill);
+// le pide los datos al usuario para imprimir factura
+bot.on("/printBill", (msg) => {
+  const id = msg.from.id;
+  bot.sendMessage(
+    id,
+    "Por favor introduzca su nombre, apellido y correo electronico separados por comas. Ej: Nombre,Apellido,email@email.com",
+    { ask: "printBill" }
+  );
+});
+
+// imprime la factura con los datos del usuario
+bot.on("ask.printBill", printBill);
+
+// input de los ids de los productos a eliminar del carrito del usuario
+bot.on("/removeFromCart", (msg) => {
+  const id = msg.from.id;
+  bot.sendMessage(
+    id,
+    "Por favor, intrduzca los ids de los productos que desea remover de su carrito, separados por comas. Ej: 1,2,3.\nEsta acción remueve todas las cantidades de ese producto",
+    { ask: "removeFromCart" }
+  );
+});
+
+// elimina los items del carrito del usuario
+bot.on("ask.removeFromCart", removeFromCart)
 
 bot.connect();
