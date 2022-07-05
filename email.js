@@ -22,8 +22,6 @@ function sendEmail(email, bill) {
     function (error) {
       if (error) {
         console.log(error);
-      } else {
-        console.log("correo enviado exitosamente");
       }
     }
   );

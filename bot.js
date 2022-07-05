@@ -21,11 +21,6 @@ const {
   printBill,
 } = require("./messages");
 
-// variable auxiliar para esperar input de usuario
-let waitUserInputSearch = false;
-let waitUserInputCart = false;
-let waitUserInputBill = false;
-
 // mensaje de bienvenida
 bot.on("/start", postUser);
 

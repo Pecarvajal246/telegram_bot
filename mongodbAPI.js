@@ -4,7 +4,6 @@ const mongodbAPI = axios.create({
   // baseURL: "http://localhost:8888/",
   baseURL: "https://mongo-api-telebot-5a78b8.netlify.app/",
   timeout: 10000,
-  // headers: { "X-Custom-Header": "foobar" },
 });
 
 const GET_ITEMS = "dbGetItems";
@@ -72,15 +71,30 @@ async function apiPostCart(msg) {
 // obiene los items del carrito del usuario
 async function apiGetCart(msg) {
   const userId = msg.from.id;
+  let text;
   try {
     let response = await mongodbAPI.get(`${GET_CART}?userId=${userId}`);
+    const cartItems = response.data.items;
+    if (!response.data.items) {
+      return
+    }
+    let quantities = {};
+    for (const item of cartItems) {
+      if (quantities.hasOwnProperty(item)) {
+        quantities[item] += 1;
+      } else {
+        quantities[item] = 1;
+      }
+    }
     let items = "";
     let total = 0;
-    for (const item of response.data) {
-      items += `${item.id} - ${item.title} ${item.price} $\n`;
-      total += parseFloat(item.price);
+    for (const item of response.data.items_info) {
+      items += `Item: ${item.title}\nid: ${item.id}\nPrecio: ${
+        item.price
+      }$\nCantidad: ${quantities[item.id]}\n\n`;
+      total += parseFloat(item.price) * quantities[item.id];
     }
-    const text = `${items}\n total = ${total} $`;
+    text = `${items}total = ${total.toFixed(2)} $`;
     return text;
   } catch (error) {
     console.log(error);

@@ -18,6 +18,7 @@ const {
   cartMenu,
   payMenu,
   billMenu,
+  emptyCartMenu,
 } = require("./buttons");
 
 // Request a la api para obtener 1 producto por su id
@@ -32,7 +33,7 @@ async function searchProduct(msg) {
     bot.sendMessage(
       id,
       "⚠️Error, debe introducir solamente el numero del producto que desea buscar. Ej: 1 Intentelo de nuevo.",
-      { ask: 'searchProduct' }
+      { ask: "searchProduct" }
     );
     return;
   }
@@ -84,7 +85,7 @@ async function addToCart(msg) {
     bot.sendMessage(
       msg.from.id,
       "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.\nSeleccione una opción",
-      {  ask: "addToCart" }
+      { ask: "addToCart" }
     );
     return;
   }
@@ -109,8 +110,12 @@ async function addToCart(msg) {
 // imprime los items en el carrito del usuario
 async function getCart(msg) {
   try {
-    const replyMarkup = billMenu;
+    let replyMarkup = billMenu;
     const text = await apiGetCart(msg);
+    if (!text) {
+      replyMarkup = emptyCartMenu
+      return bot.sendMessage(msg.from.id, "Tu carrito esta vacío, agrega productos para poder verlos aqui", { replyMarkup });
+    }
     bot.sendMessage(msg.from.id, text, { replyMarkup });
   } catch (error) {
     console.log(error);
@@ -181,7 +186,7 @@ async function printBill(msg) {
     return bot.sendMessage(
       id,
       "El correo no es Gmail o los datos son invalidos",
-      {  ask: "printBill" }
+      { ask: "printBill" }
     );
   } else {
     try {
