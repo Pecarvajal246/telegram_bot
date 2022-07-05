@@ -19,6 +19,7 @@ const {
   infoCrypto,
   infoTransfer,
   printBill,
+  removeFromCart,
 } = require("./messages");
 
 // mensaje de bienvenida
@@ -86,5 +87,18 @@ bot.on("/printBill", (msg) => {
 
 // imprime la factura con los datos del usuario
 bot.on("ask.printBill", printBill);
+
+// input de los ids de los productos a eliminar del carrito del usuario
+bot.on("/removeFromCart", (msg) => {
+  const id = msg.from.id;
+  bot.sendMessage(
+    id,
+    "Por favor, intrduzca los ids de los productos que desea remover de su carrito, separados por comas. Ej: 1,2,3.\nEsta acción remueve todas las cantidades de ese producto",
+    { ask: "removeFromCart" }
+  );
+});
+
+// elimina los items del carrito del usuario
+bot.on("ask.removeFromCart", removeFromCart)
 
 bot.connect();

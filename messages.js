@@ -9,6 +9,7 @@ const {
   apiPostCart,
   apiGetCart,
   apiDeleteCart,
+  apiRemoveFromCart,
 } = require("./mongodbAPI");
 
 const {
@@ -81,10 +82,9 @@ async function addToCart(msg) {
   const userInput = msg.text;
   let replyMarkup = cartMenu;
   if (!regex.test(userInput)) {
-    replyMarkup = productsMenu;
     bot.sendMessage(
       msg.from.id,
-      "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.\nSeleccione una opción",
+      "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.",
       { ask: "addToCart" }
     );
     return;
@@ -113,8 +113,12 @@ async function getCart(msg) {
     let replyMarkup = billMenu;
     const text = await apiGetCart(msg);
     if (!text) {
-      replyMarkup = emptyCartMenu
-      return bot.sendMessage(msg.from.id, "Tu carrito esta vacío, agrega productos para poder verlos aqui", { replyMarkup });
+      replyMarkup = emptyCartMenu;
+      return bot.sendMessage(
+        msg.from.id,
+        "Tu carrito esta vacío, agrega productos para poder verlos aqui",
+        { replyMarkup }
+      );
     }
     bot.sendMessage(msg.from.id, text, { replyMarkup });
   } catch (error) {
@@ -172,6 +176,7 @@ function infoTransfer(msg) {
   return bot.sendMessage(id, text);
 }
 
+// envia la factura al correo introducido por el ususario
 async function printBill(msg) {
   let id = msg.from.id;
   let text = msg.text.split(",");
@@ -202,6 +207,30 @@ async function printBill(msg) {
   }
 }
 
+// elimina los items intruducidos por el usuario del su carrito
+async function removeFromCart(msg) {
+  const id = msg.from.id;
+  const replyMarkup = cartMenu;
+  const regex = /^(1?\d|^20$)+(,(1?\d|20$))*$/;
+  const userInput = msg.text;
+  if (!regex.test(userInput)) {
+    bot.sendMessage(
+      id,
+      "⚠️Error, debe introducir solamente los numeros de los productos separados por comas. Ej: 1,2,3.",
+      { ask: "removeFromCart" }
+    );
+    return;
+  }
+  try {
+    await apiRemoveFromCart(msg);
+    bot.sendMessage(id, "Productos eliminados de su carrito exitosamente", {
+      replyMarkup,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 module.exports = {
   searchProduct,
   getProducts,
@@ -215,4 +244,5 @@ module.exports = {
   infoCrypto,
   infoTransfer,
   printBill,
+  removeFromCart,
 };

@@ -44,6 +44,10 @@ const buttons = {
     label: "🛒 Ir al carrito",
     command: "/goToCart",
   },
+  removeFromCart: {
+    label: "🛒 Remover del carrito",
+    command: "/removeFromCart",
+  },
   printBill: {
     label: "🧾 Imprimir factura",
     command: "/printBill",
@@ -137,10 +141,15 @@ const billMenu = bot.inlineKeyboard([
     bot.inlineButton(buttons.backToProducts.label, {
       callback: buttons.backToProducts.command,
     }),
+    bot.inlineButton(buttons.removeFromCart.label, {
+      callback: buttons.removeFromCart.command,
+    }),
+  ],
+  [
     bot.inlineButton(buttons.printBill.label, {
       callback: buttons.printBill.command,
     }),
-  ],
+  ]
 ]);
 
 const emptyCartMenu = bot.inlineKeyboard([

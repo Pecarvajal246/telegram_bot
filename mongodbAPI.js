@@ -1,8 +1,8 @@
 const axios = require("axios");
 
 const mongodbAPI = axios.create({
-  // baseURL: "http://localhost:8888/",
-  baseURL: "https://mongo-api-telebot-5a78b8.netlify.app/",
+  baseURL: "http://localhost:8888/",
+  // baseURL: "https://mongo-api-telebot-5a78b8.netlify.app/",
   timeout: 10000,
 });
 
@@ -76,7 +76,7 @@ async function apiGetCart(msg) {
     let response = await mongodbAPI.get(`${GET_CART}?userId=${userId}`);
     const cartItems = response.data.items;
     if (!response.data.items) {
-      return
+      return;
     }
     let quantities = {};
     for (const item of cartItems) {
@@ -101,6 +101,7 @@ async function apiGetCart(msg) {
   }
 }
 
+// elimina el carrito del usuario
 async function apiDeleteCart(msg) {
   const userId = msg.from.id;
   try {
@@ -110,6 +111,17 @@ async function apiDeleteCart(msg) {
   }
 }
 
+// elimina los items del carrito del usuario
+async function apiRemoveFromCart(msg) {
+  const userId = msg.from.id;
+  const items = msg.text.split(",").map((item) => {
+    return parseInt(item);
+  });
+  try {
+    await mongodbAPI.delete(DELETE_CART, { data: { userId, items } });
+  } catch (error) {}
+}
+
 module.exports = {
   apiSearchProduct,
   apiGetProducts,
@@ -117,4 +129,5 @@ module.exports = {
   apiPostCart,
   apiGetCart,
   apiDeleteCart,
+  apiRemoveFromCart,
 };
