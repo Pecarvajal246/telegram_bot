@@ -1,8 +1,8 @@
 const axios = require("axios");
 
 const mongodbAPI = axios.create({
-  baseURL: "http://localhost:8888/",
-  // baseURL: "https://mongo-api-telebot-5a78b8.netlify.app/",
+  // baseURL: "http://localhost:8888/",
+  baseURL: "https://mongo-api-telebot-5a78b8.netlify.app/",
   timeout: 10000,
 });
 
