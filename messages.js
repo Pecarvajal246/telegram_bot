@@ -38,14 +38,13 @@ async function searchProduct(msg) {
     );
     return;
   }
-  bot.sendMessage(id, "buscando...");
+  await bot.sendMessage(id, "buscando...");
   try {
-    const text = await apiSearchProduct(msg);
-    bot.sendMessage(id, text, { replyMarkup });
-    waitUserInputSearch = false;
+    const response = await apiSearchProduct(msg);
+    const text = `🛍️ <i><b>${response.data[0].title}</b></i>\n\n📜 Descripción:\n${response.data[0].description}\n\n💰 Precio: ${response.data[0].price}$\n\n${response.data[0].image}`;
+    bot.sendMessage(id, text, { parseMode: "html", replyMarkup });
   } catch (error) {
     bot.sendMessage(id, "no se encontro el producto");
-    waitUserInputSearch = false;
   }
 }
 
@@ -54,8 +53,14 @@ async function getProducts(msg) {
   const id = msg.from.id;
   const replyMarkup = productsMenu;
   try {
-    const text = await apiGetProducts();
-    bot.sendMessage(id, text, { replyMarkup });
+    const response = await apiGetProducts();
+    const text = response.data
+      .map((item) => {
+        // return `<b>${item.id})</b> ${item.title} <b>${item.price}$</b>\n`;
+        return `🛍️ ${item.title}\n🆔<b>:${item.id}</b>  💰 Precio: <b>${item.price}$</b>\n`;
+      })
+      .join("\n");
+    bot.sendMessage(id, text, { parseMode: "html", replyMarkup });
   } catch (error) {
     console.log(error);
   }
@@ -66,9 +71,10 @@ async function postUser(msg) {
   const replyMarkup = mainMenu;
   await apiPostUser(msg);
   userId = msg.from.id;
+  userFirstName = msg.from.first_name;
   bot.sendMessage(
     userId,
-    "Bienvenido a nuestra tienda!\nSeleccione una de las siguientes opciones:",
+    `Hola, ${userFirstName}! bienvenido a nuestra tienda!\nSeleccione una de las siguientes opciones:`,
     {
       replyMarkup,
     }
@@ -106,13 +112,36 @@ async function addToCart(msg) {
     console.log(error);
   }
 }
+function processCart(cartItems, cartItemsInfo) {
+  // calcula las cantidades de cada item en el carrito
+  let quantities = {};
+  for (const item of cartItems) {
+    if (quantities.hasOwnProperty(item)) {
+      quantities[item] += 1;
+    } else {
+      quantities[item] = 1;
+    }
+  }
+  let items = "";
+  let total = 0;
+  for (const item of cartItemsInfo) {
+    items += `Item: ${item.title}\nid: ${item.id}\nPrecio: ${
+      item.price
+    }$\nCantidad: ${quantities[item.id]}\n\n`;
+    total += parseFloat(item.price) * quantities[item.id];
+  }
+  return `${items}total = ${total.toFixed(2)} $`;
+}
 
 // imprime los items en el carrito del usuario
 async function getCart(msg) {
   try {
     let replyMarkup = billMenu;
-    const text = await apiGetCart(msg);
-    if (!text) {
+    // const response = await apiGetCart(msg);
+    const { items, items_info } = await apiGetCart(msg);
+
+    // Revisa si el carrito esta vacio
+    if (!items || items.length === 0) {
       replyMarkup = emptyCartMenu;
       return bot.sendMessage(
         msg.from.id,
@@ -120,6 +149,7 @@ async function getCart(msg) {
         { replyMarkup }
       );
     }
+    const text = processCart(items, items_info);
     bot.sendMessage(msg.from.id, text, { replyMarkup });
   } catch (error) {
     console.log(error);
@@ -183,6 +213,7 @@ async function printBill(msg) {
   const firstName = text[0];
   const lastName = text[1];
   const email = text[2];
+  const replyMarkup = mainMenu;
 
   validation = await validationEmail(firstName, lastName, email);
 
@@ -194,15 +225,17 @@ async function printBill(msg) {
     );
   } else {
     try {
-      const items = await apiGetCart(msg);
-      sendEmail(email, items);
+      const { items, items_info } = await apiGetCart(msg);
+      const text = processCart(items, items_info);
+      sendEmail(firstName, lastName, email, text);
       await apiDeleteCart(msg);
     } catch (error) {
       console.log(error);
     }
     return bot.sendMessage(
       id,
-      "Muchas gracias por comprar en FakeStoreApi, la factura ha sido enviada a su correo electrónico"
+      "Muchas gracias por comprar en FakeStoreApi, la factura ha sido enviada a su correo electrónico. Si desea continuar, seleccione una de las siguientes opciones:",
+      { replyMarkup }
     );
   }
 }
