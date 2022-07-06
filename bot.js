@@ -36,7 +36,7 @@ bot.on("/searchProduct", (msg) => {
   let id = msg.from.id;
   bot.sendMessage(
     id,
-    "introduzca el numero del producto que desea buscar. Ej: 1",
+    "introduzca el id del producto que desea buscar. Ej: 1",
     { ask: "searchProduct" }
   );
 });
@@ -49,7 +49,7 @@ bot.on("/addToCart", (msg) => {
   let id = msg.from.id;
   bot.sendMessage(
     id,
-    "introduzca los numeros de los items que desea agregar al carrito, separados por comas. Ej: 1,2,3",
+    "introduzca los ids de los items que desea agregar al carrito, separados por comas. Ej: 1,2,3. Puede repetir el id para incrementar su cantidad",
     { ask: "addToCart" }
   );
 });
@@ -93,7 +93,7 @@ bot.on("/removeFromCart", (msg) => {
   const id = msg.from.id;
   bot.sendMessage(
     id,
-    "Por favor, intrduzca los ids de los productos que desea remover de su carrito, separados por comas. Ej: 1,2,3.\nEsta acción remueve todas las cantidades de ese producto",
+    "Por favor, introduzca los ids de los productos que desea remover de su carrito, separados por comas. Ej: 1,2,3. Puede repetir el id para desminuir su cantidad",
     { ask: "removeFromCart" }
   );
 });
