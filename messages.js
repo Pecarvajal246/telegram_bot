@@ -56,7 +56,6 @@ async function getProducts(msg) {
     const response = await apiGetProducts();
     const text = response.data
       .map((item) => {
-        // return `<b>${item.id})</b> ${item.title} <b>${item.price}$</b>\n`;
         return `🛍️ ${item.title}\n🆔<b>:${item.id}</b>  💰 Precio: <b>${item.price}$</b>\n`;
       })
       .join("\n");
@@ -137,7 +136,6 @@ function processCart(cartItems, cartItemsInfo) {
 async function getCart(msg) {
   try {
     let replyMarkup = billMenu;
-    // const response = await apiGetCart(msg);
     const { items, items_info } = await apiGetCart(msg);
 
     // Revisa si el carrito esta vacio
