@@ -96,10 +96,21 @@ const productsMenu = bot.inlineKeyboard([
 // Menu con los resultados de la busqueda
 const productResultMenu = bot.inlineKeyboard([
   [
+    bot.inlineButton(buttons.searchProduct.label, {
+      callback: buttons.searchProduct.command,
+    }),
+    bot.inlineButton(buttons.addToCart.label, {
+      callback: buttons.addToCart.command,
+    }),
+  ],
+  [
     bot.inlineButton(buttons.backToProducts.label, {
       callback: buttons.backToProducts.command,
     }),
-  ],
+    bot.inlineButton(buttons.goToCart.label, {
+      callback: buttons.goToCart.command,
+    }),
+  ]
 ]);
 
 // Menu despues de agregar productos al carrito
